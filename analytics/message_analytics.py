@@ -98,7 +98,7 @@ class MessageAnalytics:
             frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
             frame["message_count"] = pd.to_numeric(frame["message_count"], errors="coerce").fillna(0).astype(int)
             frame = frame.dropna(subset=["date"])
-            frame = frame.groupby("date", as_index=False)["message_count"].sum()
+            frame = frame.groupby("date", as_index=False, observed=True)["message_count"].sum()
 
             frame = (
                 pd.DataFrame({"date": date_index})
@@ -146,7 +146,7 @@ class MessageAnalytics:
 
             complete_index = pd.MultiIndex.from_product([range(24), range(7)], names=["hour", "day_of_week"])
             frame = (
-                frame.groupby(["hour", "day_of_week"], as_index=False)["message_count"].sum()
+                frame.groupby(["hour", "day_of_week"], as_index=False, observed=True)["message_count"].sum()
                 .set_index(["hour", "day_of_week"])
                 .reindex(complete_index, fill_value=0)
                 .reset_index()

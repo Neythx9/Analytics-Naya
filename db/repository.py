@@ -31,26 +31,26 @@ class Repository:
 
 		async with self._session_factory() as session:
 			try:
-				result = await session.execute(select(Guild).where(Guild.guild_id == guild_id))
-				guild = result.scalar_one_or_none()
+				async with session.begin():
+					result = await session.execute(select(Guild).where(Guild.guild_id == guild_id))
+					guild = result.scalar_one_or_none()
 
-				if guild is None:
-					guild = Guild(guild_id=guild_id, name=name)
-					session.add(guild)
-				else:
-					guild.name = name
+					if guild is None:
+						guild = Guild(guild_id=guild_id, name=name)
+						session.add(guild)
+					else:
+						guild.name = name
 
-				await session.commit()
 				await session.refresh(guild)
 				return guild
 			except IntegrityError:
-				await session.rollback()
 				logger.exception("Duplicate guild upsert failed for guild_id=%s", guild_id)
 
-				result = await session.execute(select(Guild).where(Guild.guild_id == guild_id))
-				guild = result.scalar_one()
-				guild.name = name
-				await session.commit()
+				await session.rollback()
+				async with session.begin():
+					result = await session.execute(select(Guild).where(Guild.guild_id == guild_id))
+					guild = result.scalar_one()
+					guild.name = name
 				await session.refresh(guild)
 				return guild
 			except SQLAlchemyError:
@@ -63,35 +63,35 @@ class Repository:
 
 		async with self._session_factory() as session:
 			try:
-				result = await session.execute(select(Channel).where(Channel.channel_id == channel_id))
-				channel = result.scalar_one_or_none()
+				async with session.begin():
+					result = await session.execute(select(Channel).where(Channel.channel_id == channel_id))
+					channel = result.scalar_one_or_none()
 
-				if channel is None:
-					channel = Channel(
-						channel_id=channel_id,
-						guild_id=guild_id,
-						name=name,
-						channel_type=channel_type,
-					)
-					session.add(channel)
-				else:
-					channel.guild_id = guild_id
-					channel.name = name
-					channel.channel_type = channel_type
+					if channel is None:
+						channel = Channel(
+							channel_id=channel_id,
+							guild_id=guild_id,
+							name=name,
+							channel_type=channel_type,
+						)
+						session.add(channel)
+					else:
+						channel.guild_id = guild_id
+						channel.name = name
+						channel.channel_type = channel_type
 
-				await session.commit()
 				await session.refresh(channel)
 				return channel
 			except IntegrityError:
-				await session.rollback()
 				logger.exception("Duplicate channel upsert failed for channel_id=%s", channel_id)
 
-				result = await session.execute(select(Channel).where(Channel.channel_id == channel_id))
-				channel = result.scalar_one()
-				channel.guild_id = guild_id
-				channel.name = name
-				channel.channel_type = channel_type
-				await session.commit()
+				await session.rollback()
+				async with session.begin():
+					result = await session.execute(select(Channel).where(Channel.channel_id == channel_id))
+					channel = result.scalar_one()
+					channel.guild_id = guild_id
+					channel.name = name
+					channel.channel_type = channel_type
 				await session.refresh(channel)
 				return channel
 			except SQLAlchemyError:
@@ -115,24 +115,24 @@ class Repository:
 
 		async with self._session_factory() as session:
 			try:
-				result = await session.execute(select(Message).where(Message.message_id == message_id))
-				existing_message = result.scalar_one_or_none()
-				if existing_message is not None:
-					return None
+				async with session.begin():
+					result = await session.execute(select(Message).where(Message.message_id == message_id))
+					existing_message = result.scalar_one_or_none()
+					if existing_message is not None:
+						return None
 
-				message = Message(
-					message_id=message_id,
-					guild_id=guild_id,
-					channel_id=channel_id,
-					author_id=author_id,
-					author_name=author_name,
-					content_length=content_length,
-					has_attachments=has_attachments,
-					has_embeds=has_embeds,
-					timestamp=timestamp,
-				)
-				session.add(message)
-				await session.commit()
+					message = Message(
+						message_id=message_id,
+						guild_id=guild_id,
+						channel_id=channel_id,
+						author_id=author_id,
+						author_name=author_name,
+						content_length=content_length,
+						has_attachments=has_attachments,
+						has_embeds=has_embeds,
+						timestamp=timestamp,
+					)
+					session.add(message)
 				await session.refresh(message)
 				return message
 			except IntegrityError:
@@ -156,15 +156,15 @@ class Repository:
 
 		async with self._session_factory() as session:
 			try:
-				event = MemberEvent(
-					guild_id=guild_id,
-					member_id=member_id,
-					member_name=member_name,
-					event_type=event_type,
-					timestamp=timestamp,
-				)
-				session.add(event)
-				await session.commit()
+				async with session.begin():
+					event = MemberEvent(
+						guild_id=guild_id,
+						member_id=member_id,
+						member_name=member_name,
+						event_type=event_type,
+						timestamp=timestamp,
+					)
+					session.add(event)
 				await session.refresh(event)
 				return event
 			except IntegrityError:
