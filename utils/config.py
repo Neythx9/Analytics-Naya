@@ -62,14 +62,18 @@ def _parse_dashboard_port(raw_value: str) -> int:
 
 
 @lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """Load environment variables and return a cached settings object."""
+def get_settings(require_token: bool = True) -> Settings:
+    """Load environment variables and return a cached settings object.
+
+    Args:
+        require_token: Whether to raise an error when ``DISCORD_TOKEN`` is missing.
+    """
 
     # Load project-level environment values before reading from os.environ.
     load_dotenv(dotenv_path=Path(".env"), override=False)
 
     token = os.getenv("DISCORD_TOKEN", "").strip()
-    if not token:
+    if require_token and not token:
         raise ValueError(
             "DISCORD_TOKEN is required and was not found in the environment or .env file."
         )

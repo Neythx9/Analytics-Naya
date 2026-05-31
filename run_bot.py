@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
     """Load configuration, initialize the bot, and start the Discord client."""
 
-    settings = get_settings()
+    settings = get_settings(require_token=True)
     setup_logging(settings)
 
     repository = Repository()

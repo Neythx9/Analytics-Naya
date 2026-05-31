@@ -122,7 +122,7 @@ async def _load_trends_data(
 def main() -> None:
     """Launch the Streamlit dashboard."""
 
-    settings = get_settings()
+    settings = get_settings(require_token=False)
     setup_logging(settings)
 
     st.set_page_config(page_title="Discord Analytics", page_icon="📊", layout="wide")
