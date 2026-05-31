@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncContextManager, Callable
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, AsyncContextManager, Callable
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
